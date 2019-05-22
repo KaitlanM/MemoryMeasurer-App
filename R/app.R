@@ -15,19 +15,22 @@ library(shiny)
 #install.packages("plotrix")
 library(plotrix)
 
-### Plot random number of circles for intermediate activity
+### Reading in the files to sample words from
 
-plot(1:10, type = "n", bty = "o", xlab = "", ylab = "", main = "") # The empty plot
+file1 <- file.choose()
+file2 <- file.choose()
+file3 <- file.choose()
+oneSyllable <- read.table(file = file1)
+twoSyllable <- read.table(file = file2)
+threeSyllable <- read.table(file = file3)
+# credit to http://www.ashley-bovan.co.uk/words/partsofspeech.html for the word list
 
-numCirc <- sample(20:50, 1) # The number of circles
+oneSyllable <- as.vector(oneSyllable[, 1])
+twoSyllable <- as.vector(twoSyllable[, 1])
+threeSyllable <- as.vector(threeSyllable[, 1])
 
-for (i in 1:numCirc){ # Plot them
-  draw.circle(runif(1, min = 1, max = 10), runif(1, min = 1, max = 10), radius = 0.4,
-              col = rgb(red = runif(1), green = runif(1), blue = runif(1))
-              )
-}
-
-
+twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
+threeSyllableSmall <- sample(threeSyllable, 5000)
 
 
 library(shiny)
@@ -38,29 +41,32 @@ ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Intermediate Task",
                            sliderInput(inputId = "circleGuess",
                                        label = "Count the circles and indicate on the slider how many there are.",
-                                       min = 0, max = 100, value = 0),
-                          plotOutput("circles")
+                                       min = 0, max = 50, value = 0),
 
-
+                          plotOutput("circles"),
+                          actionButton(inputId = "circleDone", label = "Done")
                           ),
                  tabPanel("Reciting",
                           textInput(inputId = "wordsRemembered",
                                     label = "Please type the words that you remember and press enter after each one",
-                                    value = ""))
+                                    value = "")
+                          )
 
 )
 
 server <- function(input, output){
-  output$circles <- renderPlot(1:10, type = "n") # The empty plot
+  ### Plot random circles for the intermediate task
+  output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
+                                     xaxt = "n", yaxt = "n") # The empty plot
 
-                                numCirc <- sample(20:50, 1) # The number of circles
+                    numCirc <- sample(20:50, 1) # The number of circles
 
-                                for (i in 1:numCirc){ # Plot them
-                                  draw.circle(runif(1, min = 1, max = 10), runif(1, min = 1, max = 10), radius = 0.4,
-                                              col = rgb(red = runif(1), green = runif(1), blue = runif(1))
-                                  )
+                    for (i in 1:numCirc){ # Plot them
+                          draw.circle(runif(1, min = 1, max = 10), runif(1, min = 1, max = 10), radius = 0.4,
+                                      col = rgb(red = runif(1), green = runif(1), blue = runif(1)))
                                 }
 
+  })
 }
 
 shinyApp(ui = ui, server = server)
