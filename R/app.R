@@ -14,29 +14,17 @@
 library(shiny)
 #install.packages("plotrix")
 library(plotrix)
+#install.packages("lubridate")
+library(lubridate)
 
-### Reading in the files to sample words from
-
-file1 <- file.choose()
-file2 <- file.choose()
-file3 <- file.choose()
-oneSyllable <- read.table(file = file1)
-twoSyllable <- read.table(file = file2)
-threeSyllable <- read.table(file = file3)
-# credit to http://www.ashley-bovan.co.uk/words/partsofspeech.html for the word list
-
-oneSyllable <- as.vector(oneSyllable[, 1])
-twoSyllable <- as.vector(twoSyllable[, 1])
-threeSyllable <- as.vector(threeSyllable[, 1])
-
-twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
-threeSyllableSmall <- sample(threeSyllable, 5000)
-
-
-library(shiny)
 ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Memorizing Phase",
-                         "Memorize the following words:"
+                          numericInput(inputId = "timerIn", label = "Seconds", value = 30,
+                                       min = 20, max = 60, step = 1),
+                          textOutput(outputId = "timeleft"),
+                          actionButton(inputId = "start", label = "Start!"),
+                         "Memorize the following words:",
+                         dataTableOutput("wordTable")
                          ),
                  tabPanel("Intermediate Task",
                            sliderInput(inputId = "circleGuess",
@@ -54,7 +42,47 @@ ui <- navbarPage(title = "Memory Measurer",
 
 )
 
-server <- function(input, output){
+server <- function(input, output, session){
+  ### Reading in the files to sample words from (credit to http://www.ashley-bovan.co.uk/words/partsofspeech.html for the word list)
+  oneSyllable <- read.table(file = "1syllablenouns.txt")
+  twoSyllable <- read.table(file = "2syllablenouns.txt")
+  threeSyllable <- read.table(file = "3syllablenouns.txt")
+
+  oneSyllable <- as.vector(oneSyllable[, 1]) # This needs to be a vector so that we can sample from it
+  twoSyllable <- as.vector(twoSyllable[, 1])
+  threeSyllable <- as.vector(threeSyllable[, 1])
+
+  twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
+  threeSyllableSmall <- sample(threeSyllable, 5000)
+
+
+  output$wordTable <- renderDataTable({data.frame(sample(oneSyllable, 20))})
+
+  ### Timer
+  timer <- reactiveVal(20)
+  active <- reactiveVal(FALSE)
+
+  output$timeleft <- renderText({
+    paste("Time left: ", seconds_to_period(timer()))
+  })
+
+  observe({
+    invalidateLater(1000, session)
+    isolate({
+      if(active()) {
+        timer(timer() - 1)
+        if(timer() < 1){
+          active(FALSE)
+          showModal(modalDialog(
+            title = "Important!", "Time's Up!"
+          ))
+        }
+      }
+    })
+  })
+
+  observeEvent(input$start, {active(TRUE)})
+
   ### Plot random circles for the intermediate task
   output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
                                      xaxt = "n", yaxt = "n") # The empty plot
@@ -67,6 +95,7 @@ server <- function(input, output){
                                 }
 
   })
+
 }
 
 shinyApp(ui = ui, server = server)
