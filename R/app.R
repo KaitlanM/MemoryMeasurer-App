@@ -17,6 +17,14 @@ library(plotrix)
 #install.packages("lubridate")
 library(lubridate)
 
+
+
+
+
+
+
+
+
 ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Memorizing Phase",
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
@@ -24,20 +32,21 @@ ui <- navbarPage(title = "Memory Measurer",
                           textOutput(outputId = "timeleft"),
                           actionButton(inputId = "start", label = "Start!"),
                          "Memorize the following words:",
-                         dataTableOutput("wordTable")
+                         dataTableOutput(outputId = "wordTable")
                          ),
                  tabPanel("Intermediate Task",
                            sliderInput(inputId = "circleGuess",
                                        label = "Count the circles and indicate on the slider how many there are.",
                                        min = 0, max = 50, value = 0),
 
-                          plotOutput("circles"),
+                          plotOutput(outputId = "circles"),
                           actionButton(inputId = "circleDone", label = "Done")
                           ),
                  tabPanel("Reciting",
                           textInput(inputId = "wordsRemembered",
                                     label = "Please type the words that you remember and press enter after each one",
-                                    value = "")
+                                    value = ""),
+                          dataTableOutput(outputId = "tableRemembered")
                           )
 
 )
@@ -55,11 +64,14 @@ server <- function(input, output, session){
   twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
   threeSyllableSmall <- sample(threeSyllable, 5000)
 
+  words <- reactive(sample(oneSyllable, 20))
 
-  output$wordTable <- renderDataTable({data.frame(sample(oneSyllable, 20))})
+  output$wordTable <- renderDataTable({
+    data.frame(matrix(words(), ncol = 5))
+    })
 
-  ### Timer
-  timer <- reactiveVal(20)
+  ### Timer (adapted from https://stackoverflow.com/questions/49250167/how-to-create-a-countdown-timer-in-shiny)
+  timer <- reactiveVal(30)
   active <- reactiveVal(FALSE)
 
   output$timeleft <- renderText({
@@ -95,6 +107,8 @@ server <- function(input, output, session){
                                 }
 
   })
+
+  output$tableRemembered <- renderDataTable({wordsRemembered})
 
 }
 
