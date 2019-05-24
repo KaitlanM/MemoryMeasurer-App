@@ -44,8 +44,9 @@ ui <- navbarPage(title = "Memory Measurer",
                           ),
                  tabPanel("Reciting",
                           textInput(inputId = "wordsRemembered",
-                                    label = "Please type the words that you remember and press enter after each one",
+                                    label = "Please type the words that you remember and press the Submit button after each one",
                                     value = ""),
+                          actionButton(inputId = "submitWord", label = "Submit"),
                           dataTableOutput(outputId = "tableRemembered")
                           )
 
@@ -94,6 +95,7 @@ server <- function(input, output, session){
   })
 
   observeEvent(input$start, {active(TRUE)})
+  observeEvent(input$start, {timer(input$timerIn)})
 
   ### Plot random circles for the intermediate task
   output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
@@ -108,7 +110,17 @@ server <- function(input, output, session){
 
   })
 
-  output$tableRemembered <- renderDataTable({wordsRemembered})
+  ### Print the user's words into a table
+  userWords <- reactive({
+    data <- input[["wordsRemembered"]]
+    data
+  })
+
+  observeEvent(input$submitWord,
+               {output$tableRemembered <- renderDataTable({
+                 data.frame(matrix(userWords()))
+                 })
+               })
 
 }
 
