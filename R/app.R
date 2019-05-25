@@ -65,7 +65,8 @@ server <- function(input, output, session){
   twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
   threeSyllableSmall <- sample(threeSyllable, 5000)
 
-  words <- reactive(sample(oneSyllable, 20))
+  words <- eventReactive(input$start, {
+    wordData <<- sample(oneSyllable, 20)})
 
   output$wordTable <- renderDataTable({
     data.frame(matrix(words(), ncol = 5))
@@ -122,6 +123,8 @@ server <- function(input, output, session){
   output$tableRemembered <- renderDataTable({
       data.frame(matrix(userWords()))
      })
+
+
 
 }
 
