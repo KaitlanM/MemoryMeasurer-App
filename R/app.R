@@ -114,18 +114,14 @@ server <- function(input, output, session){
 
   data <- NULL
 
-  userWords <- reactive({
+  userWords <- eventReactive(input$submitWord,{
     data <<- c(data, input[["wordsRemembered"]])
     data
   })
 
-
-  observeEvent(input$submitWord, {
-    output$tableRemembered <- renderDataTable({
+  output$tableRemembered <- renderDataTable({
       data.frame(matrix(userWords()))
      })
-  }, ignoreNULL = FALSE
-  )
 
 }
 
