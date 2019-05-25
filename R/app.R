@@ -73,7 +73,7 @@ server <- function(input, output, session){
 
   ### Timer (adapted from https://stackoverflow.com/questions/49250167/how-to-create-a-countdown-timer-in-shiny)
   timer <- reactiveVal(30)
-  active <- reactiveVal(FALSE)
+  activeTimer <- reactiveVal(FALSE)
 
   output$timeleft <- renderText({
     paste("Time left: ", seconds_to_period(timer()))
@@ -82,10 +82,10 @@ server <- function(input, output, session){
   observe({
     invalidateLater(1000, session)
     isolate({
-      if(active()) {
+      if(activeTimer()) {
         timer(timer() - 1)
         if(timer() < 1){
-          active(FALSE)
+          activeTimer(FALSE)
           showModal(modalDialog(
             title = "Important!", "Time's Up!"
           ))
@@ -94,7 +94,7 @@ server <- function(input, output, session){
     })
   })
 
-  observeEvent(input$start, {active(TRUE)})
+  observeEvent(input$start, {activeTimer(TRUE)})
   observeEvent(input$start, {timer(input$timerIn)})
 
   ### Plot random circles for the intermediate task
@@ -111,16 +111,25 @@ server <- function(input, output, session){
   })
 
   ### Print the user's words into a table
+  activeTable <- reactiveVal(FALSE)
+  data <- NULL
+
   userWords <- reactive({
-    data <- input[["wordsRemembered"]]
+    data <<- c(data, input[["wordsRemembered"]])
     data
   })
 
-  observeEvent(input$submitWord,
-               {output$tableRemembered <- renderDataTable({
-                 data.frame(matrix(userWords()))
-                 })
-               })
+  observeEvent(input$submitWord, {activeTable(TRUE)})
+
+  observe({
+      if (activeTable()) {
+        activeTable <- reactiveVal(FALSE)
+        output$tableRemembered <- renderDataTable({
+                   data.frame(matrix(userWords()))
+        })
+
+      }
+  })
 
 }
 
