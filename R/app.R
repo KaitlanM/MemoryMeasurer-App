@@ -111,7 +111,7 @@ server <- function(input, output, session){
   })
 
   ### Print the user's words into a table
-  activeTable <- reactiveVal(FALSE)
+
   data <- NULL
 
   userWords <- reactive({
@@ -119,17 +119,13 @@ server <- function(input, output, session){
     data
   })
 
-  observeEvent(input$submitWord, {activeTable(TRUE)})
 
-  observe({
-      if (activeTable()) {
-        activeTable <- reactiveVal(FALSE)
-        output$tableRemembered <- renderDataTable({
-                   data.frame(matrix(userWords()))
-        })
-
-      }
-  })
+  observeEvent(input$submitWord, {
+    output$tableRemembered <- renderDataTable({
+      data.frame(matrix(userWords()))
+     })
+  }, ignoreNULL = FALSE
+  )
 
 }
 
