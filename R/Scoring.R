@@ -1,5 +1,11 @@
 
-
+### TO DO : Make it possible to decide a different distance.
+# Ideas: 
+for (k in 1:nrow(distances)){
+  for (l in 0:tollerance){
+    if (l %in%) ### assign multiple points to one word?
+  }
+}
 
 
 ### Dataset to work with

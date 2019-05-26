@@ -28,17 +28,18 @@ library(lubridate)
 ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Memorizing Phase",
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
-                                       min = 20, max = 60, step = 1),
-                          textOutput(outputId = "timeleft"),
+                                       min = 0, max = 120, step = 1),
+                          numericInput(inputId = "numWords", "Number of Words", value = 15,
+                                       min = 5, max = 100, step = 1),
                           actionButton(inputId = "start", label = "Start!"),
+                          textOutput(outputId = "timeleft"),
                          "Memorize the following words:",
                          dataTableOutput(outputId = "wordTable")
                          ),
                  tabPanel("Intermediate Task",
-                           sliderInput(inputId = "circleGuess",
+                          sliderInput(inputId = "circleGuess",
                                        label = "Count the circles and indicate on the slider how many there are.",
                                        min = 0, max = 50, value = 0),
-
                           plotOutput(outputId = "circles"),
                           actionButton(inputId = "circleDone", label = "Done")
                           ),
@@ -66,7 +67,7 @@ server <- function(input, output, session){
   threeSyllableSmall <- sample(threeSyllable, 5000)
 
   words <- eventReactive(input$start, {
-    wordData <<- sample(oneSyllable, 20)})
+    wordData <<- sample(oneSyllable, size = input$numWords)})
 
   output$wordTable <- renderDataTable({
     data.frame(matrix(words(), ncol = 5))
@@ -75,10 +76,6 @@ server <- function(input, output, session){
   ### Timer (adapted from https://stackoverflow.com/questions/49250167/how-to-create-a-countdown-timer-in-shiny)
   timer <- reactiveVal(30)
   activeTimer <- reactiveVal(FALSE)
-
-  output$timeleft <- renderText({
-    paste("Time left: ", seconds_to_period(timer()))
-  })
 
   observe({
     invalidateLater(1000, session)
@@ -90,6 +87,9 @@ server <- function(input, output, session){
           showModal(modalDialog(
             title = "Important!", "Time's Up!"
           ))
+          output$wordTable <- renderDataTable({
+            data.frame(matrix(ncol = 0, nrow = 0))
+          })
         }
       }
     })
@@ -97,6 +97,11 @@ server <- function(input, output, session){
 
   observeEvent(input$start, {activeTimer(TRUE)})
   observeEvent(input$start, {timer(input$timerIn)})
+  observeEvent(input$start, {
+    output$timeleft <- renderText({
+        paste("Time left: ", seconds_to_period(timer()))
+    })
+  })
 
   ### Plot random circles for the intermediate task
   output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
@@ -123,6 +128,10 @@ server <- function(input, output, session){
   output$tableRemembered <- renderDataTable({
       data.frame(matrix(userWords()))
      })
+
+  ### Evaluate the words for accuracy
+
+
 
 
 
