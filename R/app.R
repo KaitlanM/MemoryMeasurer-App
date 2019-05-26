@@ -41,14 +41,16 @@ ui <- navbarPage(title = "Memory Measurer",
                                        label = "Count the circles and indicate on the slider how many there are.",
                                        min = 0, max = 50, value = 0),
                           plotOutput(outputId = "circles"),
-                          actionButton(inputId = "circleDone", label = "Done")
+                          actionButton(inputId = "circleDone", label = "Done"),
+                          textOutput(outputId = "circleAccuracy")
                           ),
                  tabPanel("Reciting",
                           textInput(inputId = "wordsRemembered",
                                     label = "Please type the words that you remember and press the Submit button after each one",
                                     value = ""),
                           actionButton(inputId = "submitWord", label = "Submit"),
-                          dataTableOutput(outputId = "tableRemembered")
+                          dataTableOutput(outputId = "tableRemembered"),
+                          actionButton(inputId = "finishSubmit", label = "I'm Finished")
                           )
 
 )
@@ -107,13 +109,30 @@ server <- function(input, output, session){
   output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
                                      xaxt = "n", yaxt = "n") # The empty plot
 
-                    numCirc <- sample(20:50, 1) # The number of circles
+                    numCirc <<- sample(20:50, 1) # The number of circles
+                    numCircTolerance <<- seq(from = (numCirc - 2), to = (numCirc + 2), by = 1)
 
                     for (i in 1:numCirc){ # Plot them
                           draw.circle(runif(1, min = 1, max = 10), runif(1, min = 1, max = 10), radius = 0.4,
                                       col = rgb(red = runif(1), green = runif(1), blue = runif(1)))
                                 }
 
+  })
+
+  ### THIS DOESNT WORK YET?!
+
+  correct <<-  0
+
+  observeEvent(input$circleDone, {
+    output$circleAccuracy <-
+      while (correct != 1){
+        if((input$circleGuess %in% numCircTolerance) == TRUE){
+          renderText("That's correct! Move on to the Reciting tab.")
+          correct <- 1
+        } else if ((input$circleGuess %in% numCircTolerance) == FALSE){
+          renderText("That's not correct. Try again.")
+        }
+      }
   })
 
   ### Print the user's words into a table
@@ -128,6 +147,7 @@ server <- function(input, output, session){
   output$tableRemembered <- renderDataTable({
       data.frame(matrix(userWords()))
      })
+
 
   ### Evaluate the words for accuracy
 
