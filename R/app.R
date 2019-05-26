@@ -19,12 +19,6 @@ library(lubridate)
 
 
 
-
-
-
-
-
-
 ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Memorizing Phase",
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
@@ -105,7 +99,11 @@ server <- function(input, output, session){
     })
   })
 
+
   ### Plot random circles for the intermediate task
+  numCirc <- NULL
+  numCircTolerance <- NULL
+
   output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
                                      xaxt = "n", yaxt = "n") # The empty plot
 
@@ -119,20 +117,20 @@ server <- function(input, output, session){
 
   })
 
-  ### THIS DOESNT WORK YET?!
+  ### Give the user feedback about whether the count was accurate or not. (This is still buggy***)
 
-  correct <<-  0
+  accuracyText <- NULL
 
   observeEvent(input$circleDone, {
-    output$circleAccuracy <-
-      while (correct != 1){
-        if((input$circleGuess %in% numCircTolerance) == TRUE){
-          renderText("That's correct! Move on to the Reciting tab.")
-          correct <- 1
-        } else if ((input$circleGuess %in% numCircTolerance) == FALSE){
-          renderText("That's not correct. Try again.")
-        }
-      }
+    if((input$circleGuess %in% numCircTolerance) == TRUE){
+      accuracyText <- ("That's correct! Move on to the Reciting tab.")
+    } else if ((input$circleGuess %in% numCircTolerance) == FALSE){
+      accuracyText <- ("That's not correct. Try again.")
+    }
+  })
+
+  observeEvent(input$circleDone, {
+    output$circleAccuracy <- renderText(accuracyText)
   })
 
   ### Print the user's words into a table
@@ -150,9 +148,6 @@ server <- function(input, output, session){
 
 
   ### Evaluate the words for accuracy
-
-
-
 
 
 }
