@@ -2,13 +2,13 @@
 ### TO DO : Make it possible to decide a different distance.
 
 
-### Dataset to work with
+### Dataset to work with:
 
-words <- c("hello", "world", "my", "old")
-userWords <- data.frame(c("hello", "oldy"))
+system <- c("hello", "world", "my", "old")
+user <- data.frame(c("hello", "oldy", "my"))
 
 
-scoring <- function(system = words, user = userWords, ){
+scoring <- function(system = words, user = userWords){
   distances <- NULL
   score <- 0
   tUser <- t(user)
@@ -19,7 +19,7 @@ scoring <- function(system = words, user = userWords, ){
     }
   }
 
-  mDistances <- matrix(distances, nrow = length(tUser), ncol = length(system))
+  mDistances <- matrix(distances, nrow = length(tUser), ncol = length(system), byrow = TRUE)
 
 
   for (k in 1:nrow(mDistances)){

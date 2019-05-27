@@ -19,6 +19,7 @@ library(lubridate)
 
 
 
+
 ui <- navbarPage(title = "Memory Measurer",
                  tabPanel("Memorizing Phase",
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
@@ -36,7 +37,7 @@ ui <- navbarPage(title = "Memory Measurer",
                                        min = 0, max = 50, value = 0),
                           plotOutput(outputId = "circles"),
                           actionButton(inputId = "circleDone", label = "Done"),
-                          textOutput(outputId = "circleAccuracy")
+                          verbatimTextOutput(outputId = "circleAccuracy")
                           ),
                  tabPanel("Reciting",
                           textInput(inputId = "wordsRemembered",
@@ -44,7 +45,8 @@ ui <- navbarPage(title = "Memory Measurer",
                                     value = ""),
                           actionButton(inputId = "submitWord", label = "Submit"),
                           dataTableOutput(outputId = "tableRemembered"),
-                          actionButton(inputId = "finishSubmit", label = "I'm Finished")
+                          actionButton(inputId = "finishSubmit", label = "I'm Finished"),
+                          verbatimTextOutput(outputId = "scoreText")
                           )
 
 )
@@ -120,12 +122,13 @@ server <- function(input, output, session){
   ### Give the user feedback about whether the count was accurate or not. (This is still buggy***)
 
   accuracyText <- NULL
+  makeReactiveBinding("accuracyText")
 
-  observeEvent(input$circleDone, {
-    if((input$circleGuess %in% numCircTolerance) == TRUE){
-      accuracyText <- ("That's correct! Move on to the Reciting tab.")
-    } else if ((input$circleGuess %in% numCircTolerance) == FALSE){
-      accuracyText <- ("That's not correct. Try again.")
+  observe({
+    if(input$circleGuess %in% numCircTolerance){
+      accuracyText <<- ("That's correct! Move on to the Reciting tab.")
+    } else {
+      accuracyText <<- ("That's not correct. Try again.")
     }
   })
 
@@ -135,27 +138,27 @@ server <- function(input, output, session){
 
   ### Print the user's words into a table
 
-  data <- NULL
+  data <- matrix()
 
-  userWords <- eventReactive(input$submitWord,{
+  userWords <- eventReactive(input$submitWord, {
     data <<- c(data, input[["wordsRemembered"]])
     data
   })
 
-  output$tableRemembered <- renderDataTable({
+  observeEvent(input$submitWord, {
+    output$tableRemembered <- renderDataTable({
       data.frame(matrix(userWords()))
-     })
+      })
+  })
 
 
   ### Evaluate the words for accuracy
-
-
+  observeEvent(input$finishSubmit, {
+    output$scoreText <- renderText({paste("Your score is", 5)})
+  })
 }
 
 shinyApp(ui = ui, server = server)
-
-
-
 
 
 
