@@ -17,7 +17,9 @@ library(plotrix)
 #install.packages("lubridate")
 library(lubridate)
 
-
+source("scoring-words-memory-task.R")
+source("~/MemoryMeasurer/R/load-words.R")
+source("~/MemoryMeasurer/R/draw_circle_plot.R")
 
 
 ui <- navbarPage(title = "Memory Measurer",
@@ -29,7 +31,7 @@ ui <- navbarPage(title = "Memory Measurer",
                           actionButton(inputId = "start", label = "Start!"),
                           textOutput(outputId = "timeleft"),
                          "Memorize the following words:",
-                         dataTableOutput(outputId = "wordTable")
+                         tableOutput(outputId = "wordTable")
                          ),
                  tabPanel("Intermediate Task",
                           sliderInput(inputId = "circleGuess",
@@ -44,7 +46,7 @@ ui <- navbarPage(title = "Memory Measurer",
                                     label = "Please type the words that you remember and press the Submit button after each one",
                                     value = ""),
                           actionButton(inputId = "submitWord", label = "Submit"),
-                          dataTableOutput(outputId = "tableRemembered"),
+                          tableOutput(outputId = "tableRemembered"),
                           actionButton(inputId = "finishSubmit", label = "I'm Finished"),
                           verbatimTextOutput(outputId = "scoreText")
                           )
@@ -52,23 +54,15 @@ ui <- navbarPage(title = "Memory Measurer",
 )
 
 server <- function(input, output, session){
-  ### Reading in the files to sample words from (credit to http://www.ashley-bovan.co.uk/words/partsofspeech.html for the word list)
-  oneSyllable <- read.table(file = "1syllablenouns.txt")
-  twoSyllable <- read.table(file = "2syllablenouns.txt")
-  threeSyllable <- read.table(file = "3syllablenouns.txt")
 
-  oneSyllable <- as.vector(oneSyllable[, 1]) # This needs to be a vector so that we can sample from it
-  twoSyllable <- as.vector(twoSyllable[, 1])
-  threeSyllable <- as.vector(threeSyllable[, 1])
+  oneSyllable <- load_words()
 
-  twoSyllableSmall <- sample(twoSyllable, 5000) # The vector is too long so we can take a random sample to work with
-  threeSyllableSmall <- sample(threeSyllable, 5000)
+  displayWords <- eventReactive(input$start, {
+    wordData <<- sample(oneSyllable, size = input$numWords)
+   })
 
-  words <- eventReactive(input$start, {
-    wordData <<- sample(oneSyllable, size = input$numWords)})
-
-  output$wordTable <- renderDataTable({
-    data.frame(matrix(words(), ncol = 5))
+  output$wordTable <- renderTable({
+    data.frame(matrix(displayWords(), ncol = 5))
     })
 
   ### Timer (adapted from https://stackoverflow.com/questions/49250167/how-to-create-a-countdown-timer-in-shiny)
@@ -103,29 +97,21 @@ server <- function(input, output, session){
 
 
   ### Plot random circles for the intermediate task
-  numCirc <- NULL
-  numCircTolerance <- NULL
 
-  output$circles <- renderPlot({plot(0:11, type = "n", xlab = "", ylab = "", main = "", tck = 0,
-                                     xaxt = "n", yaxt = "n") # The empty plot
+  numCirc <- sample(20:50, 1) # The number of circles
+  numCircTolerance <- seq(from = (numCirc - 2), to = (numCirc + 2), by = 1) # We give the user a buffer of two when counting
 
-                    numCirc <<- sample(20:50, 1) # The number of circles
-                    numCircTolerance <<- seq(from = (numCirc - 2), to = (numCirc + 2), by = 1)
-
-                    for (i in 1:numCirc){ # Plot them
-                          draw.circle(runif(1, min = 1, max = 10), runif(1, min = 1, max = 10), radius = 0.4,
-                                      col = rgb(red = runif(1), green = runif(1), blue = runif(1)))
-                                }
-
+  output$circles <- renderPlot({
+    draw_circle_plot(numCirc)
   })
 
-  ### Give the user feedback about whether the count was accurate or not. (This is still buggy***)
+  ### Give the user feedback about whether the count was accurate or not.
 
   accuracyText <- NULL
   makeReactiveBinding("accuracyText")
 
   observe({
-    if(input$circleGuess %in% numCircTolerance){
+    if (input$circleGuess %in% numCircTolerance) {
       accuracyText <<- ("That's correct! Move on to the Reciting tab.")
     } else {
       accuracyText <<- ("That's not correct. Try again.")
@@ -141,20 +127,22 @@ server <- function(input, output, session){
   data <- matrix()
 
   userWords <- eventReactive(input$submitWord, {
-    data <<- c(data, input[["wordsRemembered"]])
+    data <<- rbind(data, input[["wordsRemembered"]])
     data
   })
 
   observeEvent(input$submitWord, {
-    output$tableRemembered <- renderDataTable({
-      data.frame(matrix(userWords()))
+    output$tableRemembered <- renderTable({
+      userData <<- data.frame(userWords())[-1, ]
+      colnames(data) <- ("Guesses")
+      userData
       })
   })
 
 
-  ### Evaluate the words for accuracy
+  ### Evaluate the words for accuracy (https://stackoverflow.com/questions/19466747/make-object-created-inside-one-reactive-object-available-to-another-in-shiny?)
   observeEvent(input$finishSubmit, {
-    output$scoreText <- renderText({paste("Your score is", 5)})
+    output$scoreText <- renderText({paste("Your score is", scoring(wordData, data))})
   })
 }
 

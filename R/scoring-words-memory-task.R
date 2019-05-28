@@ -2,13 +2,7 @@
 ### TO DO : Make it possible to decide a different distance.
 
 
-### Dataset to work with:
-
-system <- c("hello", "world", "my", "old")
-user <- data.frame(c("hello", "oldy", "my"))
-
-
-scoring <- function(system = words, user = userWords){
+scoring <- function(system, user){
   distances <- NULL
   score <- 0
   tUser <- t(user)
@@ -30,9 +24,12 @@ scoring <- function(system = words, user = userWords){
   score
 }
 
-scoring()
+scoring(system = system, user = user)
 
+### Dataset to work with:
 
+system <- c("hello", "world", "my", "old", "blue")
+user <- data.frame(c("hello", "oldy", "my", "cat"))
 
 
 
