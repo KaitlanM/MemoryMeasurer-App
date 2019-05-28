@@ -1,13 +1,3 @@
-### Package info:
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
-# Some useful keyboard shortcuts for package authoring:
-#
-#   Build and Reload Package:  'Ctrl + Shift + B'
-#   Check Package:             'Ctrl + Shift + E'
-#   Test Package:              'Ctrl + Shift + T'
 
 ### Packages used:
 #install.packages("shiny")
@@ -17,7 +7,7 @@ library(plotrix)
 #install.packages("lubridate")
 library(lubridate)
 
-source("scoring-words-memory-task.R")
+source("~/MemoryMeasurer/R/scoring-words-memory-task.R")
 source("~/MemoryMeasurer/R/load-words.R")
 source("~/MemoryMeasurer/R/draw_circle_plot.R")
 
@@ -142,7 +132,7 @@ server <- function(input, output, session){
 
   ### Evaluate the words for accuracy (https://stackoverflow.com/questions/19466747/make-object-created-inside-one-reactive-object-available-to-another-in-shiny?)
   observeEvent(input$finishSubmit, {
-    output$scoreText <- renderText({paste("Your score is", scoring(wordData, data))})
+    output$scoreText <- renderText({paste("Your score is", scoring(system = wordData, user = data))})
   })
 }
 
