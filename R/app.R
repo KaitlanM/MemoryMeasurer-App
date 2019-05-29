@@ -53,19 +53,12 @@ ui <- navbarPage(title = "Memory Measurer",
 
 server <- function(input, output, session){
 
-  wordLength <- reactiveVal(FALSE)
-  makeReactiveBinding("wordLength")
-
   observeEvent(input$start, {
-    wordLength <<- input$sylChoice
-  })
-
-  observeEvent(input$start, {
-    oneSyllable <<- load_words(wordLength = wordLength())
+    oneSyllable <<- load_words(wordLength = input$sylChoice)
   })
 
   displayWords <- eventReactive(input$start, {
-    wordData <<- sample(oneSyllable(), size = input$numWords)
+    wordData <<- sample(oneSyllable, size = input$numWords)
    })
 
   output$wordTable <- renderTable({
