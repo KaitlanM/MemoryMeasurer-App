@@ -18,6 +18,10 @@ ui <- navbarPage(title = "Memory Measurer",
                           "This is the Memory Measurer! The goal of the task is to remember as many words as you can. Start by choosing your difficulty level and how much time you would like to spend. Then memorize! In between the memorizing and the reciting, there will be a distractor task -- don't let it stump you! Good luck and have fun :)"
                           ),
                  tabPanel("Memorizing Phase",
+                          selectInput(inputId = "sylChoice", label = "Word Difficulty",
+                                      choices = c("Easy -- One Syllable" = "easy",
+                                                  "Medium -- Two Syllables" = "medium",
+                                                  "Hard -- Three Syllables" = "hard")),
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
                                        min = 0, max = 120, step = 1),
                           numericInput(inputId = "numWords", "Number of Words", value = 15,
@@ -49,10 +53,19 @@ ui <- navbarPage(title = "Memory Measurer",
 
 server <- function(input, output, session){
 
-  oneSyllable <- load_words()
+  wordLength <- reactiveVal(FALSE)
+  makeReactiveBinding("wordLength")
+
+  observeEvent(input$start, {
+    wordLength <<- input$sylChoice
+  })
+
+  observeEvent(input$start, {
+    oneSyllable <<- load_words(wordLength = wordLength())
+  })
 
   displayWords <- eventReactive(input$start, {
-    wordData <<- sample(oneSyllable, size = input$numWords)
+    wordData <<- sample(oneSyllable(), size = input$numWords)
    })
 
   output$wordTable <- renderTable({
@@ -145,7 +158,7 @@ server <- function(input, output, session){
   shinyApp(ui = ui, server = server)
 # )
 
-
+# MemoryMeasurer:::runApp()
 
 
 

@@ -14,8 +14,8 @@ scoring <- function(system, user){
   user <- sort(user)
   tUser <- t(user)
 
-  for (i in 1:length(tUser)){
-    for (j in 1:length(system)){
+  for (i in 1:length(tUser)) {
+    for (j in 1:length(system)) {
       distances <- c(distances, adist(tUser[[i]], system[j]))
     }
   }
