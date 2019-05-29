@@ -16,3 +16,6 @@ test_that("scoring works", {
   expect_length(scoring(system, user3), 1)
   expect_gt(scoring(system, user3), -1)
 })
+
+as.integer(3.4)
+is.integer(3L)

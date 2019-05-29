@@ -23,20 +23,21 @@ scoring <- function(system, user){
   mDistances <- matrix(distances, nrow = length(tUser), ncol = length(system), byrow = TRUE)
 
   k <- 1
-  score_idx <- NULL
+  score_index <- NULL
   for (k in 1:nrow(mDistances)) {
-    if ((0 %in% mDistances[k, ]) | (1 %in% mDistances[k, ]) == TRUE ) {
-      score_idx <- c(score_idx, k)
+    # if (any(obj %in% mDistances[k, ])) ####
+    if ((0 %in% mDistances[k, ]) || (1 %in% mDistances[k, ])) {
+      score_index <- c(score_index, k)
       score <- score + 1
     }
   }
 
-  scored_words <- user[score_idx]
+  scored_words <- user[score_index]
   l <- 1
-  while (l <= (length(score_idx) - 1)) {
-    for (m in (l + 1):length(score_idx)) {
-      if((adist(scored_words[l], scored_words[m]) == 0 |
-         adist(scored_words[l], scored_words[m]) == 1) &
+  while (l <= (length(score_index) - 1)) {
+    for (m in (l + 1):length(score_index)) {
+      if((adist(scored_words[l], scored_words[m]) == 0 ||
+         adist(scored_words[l], scored_words[m]) == 1) &&
          m != l) {
         score <- score - 1
         l <- l + as.numeric(table(scored_words[l])) - 1

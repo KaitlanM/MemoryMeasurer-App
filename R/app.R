@@ -1,4 +1,5 @@
 
+#' @import shiny plotrix lubridate
 ### Packages used:
 #install.packages("shiny")
 library(shiny)
@@ -13,6 +14,9 @@ source("~/MemoryMeasurer/R/draw_circle_plot.R")
 
 
 ui <- navbarPage(title = "Memory Measurer",
+                 tabPanel("Instructions",
+                          "This is the Memory Measurer! The goal of the task is to remember as many words as you can. Start by choosing your difficulty level and how much time you would like to spend. Then memorize! In between the memorizing and the reciting, there will be a distractor task -- don't let it stump you! Good luck and have fun :)"
+                          ),
                  tabPanel("Memorizing Phase",
                           numericInput(inputId = "timerIn", label = "Seconds", value = 30,
                                        min = 0, max = 120, step = 1),
@@ -65,13 +69,14 @@ server <- function(input, output, session){
       if(activeTimer()) {
         timer(timer() - 1)
         if(timer() < 1){
+          output$wordTable <- renderTable({
+            data.frame(matrix(ncol = 0, nrow = 0))
+          })
           activeTimer(FALSE)
           showModal(modalDialog(
             title = "Important!", "Time's Up!"
           ))
-          output$wordTable <- renderDataTable({
-            data.frame(matrix(ncol = 0, nrow = 0))
-          })
+
         }
       }
     })
@@ -118,14 +123,14 @@ server <- function(input, output, session){
 
   userWords <- eventReactive(input$submitWord, {
     data <<- rbind(data, input[["wordsRemembered"]])
-    data
+    return(data)
   })
 
   observeEvent(input$submitWord, {
     output$tableRemembered <- renderTable({
-      userData <<- data.frame(userWords())[-1, ]
-      colnames(data) <- ("Guesses")
-      userData
+      userData <<- data.frame(userWords())[-1, , drop = FALSE]
+      colnames(userData) <- ("Guesses")
+      return(userData)
       })
   })
 
@@ -136,7 +141,9 @@ server <- function(input, output, session){
   })
 }
 
-shinyApp(ui = ui, server = server)
+# runApp(
+  shinyApp(ui = ui, server = server)
+# )
 
 
 
