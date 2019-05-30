@@ -53,6 +53,7 @@ ui <- navbarPage(title = "Memory Measurer",
 
 server <- function(input, output, session){
 
+  ### Loading the word data and tabling it
   observeEvent(input$start, {
     oneSyllable <<- load_words(wordLength = input$sylChoice)
   })
@@ -143,7 +144,13 @@ server <- function(input, output, session){
 
   ### Evaluate the words for accuracy (https://stackoverflow.com/questions/19466747/make-object-created-inside-one-reactive-object-available-to-another-in-shiny?)
   observeEvent(input$finishSubmit, {
-    output$scoreText <- renderText({paste("Your score is", scoring(system = wordData, user = data))})
+    output$scoreText <- renderText({paste("Your score is", scoring(system = wordData, user = data, wordLength = input$sylChoice))})
+    write.csv(c(input$sylChoice,
+                input$timerIn,
+                input$numWords,
+                scoring(system = wordData, user = data, wordLength = input$sylChoice)),
+                file = "UserScore.csv",
+                row.names = c("Difficulty", "Time", "Number of words", "Score"))
   })
 }
 

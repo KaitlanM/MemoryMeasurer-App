@@ -8,11 +8,20 @@
 #'
 #' @examples
 #'
-scoring <- function(system, user){
+scoring <- function(system, user, wordLength){
   distances <- NULL
   score <- 0
   user <- sort(user)
   tUser <- t(user)
+  tolerance <- 0
+
+  if (wordLength == "easy") {
+    tolerance <- c(0, 1)
+  } else if (wordLength == "medium") {
+    tolerance <- c(0, 1, 2)
+  } else if (wordLength == "hard") {
+    tolerance <- c(0, 1, 2, 3)
+  }
 
   for (i in 1:length(tUser)) {
     for (j in 1:length(system)) {
@@ -25,20 +34,35 @@ scoring <- function(system, user){
   k <- 1
   score_index <- NULL
   for (k in 1:nrow(mDistances)) {
-    # if (any(obj %in% mDistances[k, ])) ####
-    if ((0 %in% mDistances[k, ]) || (1 %in% mDistances[k, ])) {
+    if (any(tolerance %in% mDistances[k, ])) {
       score_index <- c(score_index, k)
       score <- score + 1
     }
   }
-
+  ### THIS IS PROBLEMATIC!!!
   scored_words <- user[score_index]
   l <- 1
   while (l <= (length(score_index) - 1)) {
     for (m in (l + 1):length(score_index)) {
-      if((adist(scored_words[l], scored_words[m]) == 0 ||
-         adist(scored_words[l], scored_words[m]) == 1) &&
-         m != l) {
+      if (wordLength == "easy" &&
+                        ((adist(scored_words[l], scored_words[m])) == 0 ||
+                         (adist(scored_words[l], scored_words[m]) == 1)) &&
+                        m != l) {
+        score <- score - 1
+        l <- l + as.numeric(table(scored_words[l])) - 1
+      } else if (wordLength == "medium" &&
+                 ((adist(scored_words[l], scored_words[m])) == 0 ||
+                  (adist(scored_words[l], scored_words[m]) == 1) ||
+                  (adist(scored_words[l], scored_words[m]) == 2)) &&
+                 m != l) {
+        score <- score - 1
+        l <- l + as.numeric(table(scored_words[l])) - 1
+      } else if (wordLength == "hard" &&
+                 ((adist(scored_words[l], scored_words[m])) == 0 ||
+                  (adist(scored_words[l], scored_words[m]) == 1) ||
+                  (adist(scored_words[l], scored_words[m]) == 2) ||
+                  (adist(scored_words[l], scored_words[m]) == 3)) &&
+                 m != l){
         score <- score - 1
         l <- l + as.numeric(table(scored_words[l])) - 1
       }
@@ -47,3 +71,11 @@ scoring <- function(system, user){
   }
   return (score)
 }
+
+system <- c("hello", "hi", "there")
+user <- c("hi", "hi", "hi", "thats")
+
+wordLength <- ("easy")
+scoring(system, user, wordLength)
+
+
