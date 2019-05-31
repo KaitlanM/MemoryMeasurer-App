@@ -1,60 +1,71 @@
 #' @import shiny plotrix lubridate
 #'
+source("~/MemoryMeasurer/R/scoring-words.R")
+source("~/MemoryMeasurer/R/load-words.R")
+source("~/MemoryMeasurer/R/draw_circle_plot.R")
 ui <- navbarPage(title = "Memory Measurer",
-                 tabPanel("Instructions", # Replace with own insntructions for the task
-                          "This is the Memory Measurer!
-                          The goal of the task is to remember as many words as you can.
-                          Start by choosing your difficulty level and how much time you would like to spend.
-                          Then memorize!
-                          In between the memorizing and the reciting, there will be a distractor task --
-                          don't let it stump you!
-                          Good luck and have fun :)"
-                          ),
-                 tabPanel("Memorizing Phase",
-                          selectInput(inputId  = "sylChoice",   # User customizes word difficulty
-                                      label    = "Word Difficulty",
-                                      choices  = c("Easy -- One Syllable" = "easy",
-                                                  "Medium -- Two Syllables" = "medium",
-                                                  "Hard -- Three Syllables" = "hard")),
-                          numericInput(inputId = "timerIn", # Choose how much time to spend
-                                       label   = "Seconds",
-                                       value   = 30,
-                                       min     = 0,
-                                       max     = 120,
-                                       step    = 1),
-                          numericInput(inputId = "numWords",    # Choose the number of words
-                                       label   = "Number of Words",
-                                       value   = 15,
-                                       min     = 5,
-                                       max     = 100,
-                                       step    = 1),
-                          actionButton(inputId = "start",
-                                       label   = "Start!"),
-                          textOutput(outputId  = "timeleft"),   # Print how much time is left
-                         "Memorize the following words:",
-                          tableOutput(outputId  = "wordTable")  # Show the words
-                         ),
-                 tabPanel("Intermediate Task",
-                          sliderInput(inputId  = "circleGuess", # User can guess the number of circles
-                                       label   = "Count the circles and indicate on the slider how many there are.",
-                                       min     = 0, max = 50, value = 0),
-                          plotOutput(outputId  = "circles"),    # Show the circles
-                          actionButton(inputId = "circleDone", label = "Done"),
-                          verbatimTextOutput(outputId = "circleAccuracy") # Feedback for guess
-                          ),
-                 tabPanel("Reciting",
-                          textInput(inputId = "wordsRemembered",    # User types remembered words
-                                    label = "Please type the words that you remember and press the Submit button after
-                                             each one",
-                                    value = ""),
-                          actionButton(inputId = "submitWord",
-                                       label   = "Submit"),
-                          tableOutput(outputId = "tableRemembered"), # Typed words appear underneath
-                          actionButton(inputId = "finishSubmit",
-                                       label   = "I'm Finished"),
-                          verbatimTextOutput(outputId = "scoreText") # Feedback about score
-                          )
-
+     tabPanel("Instructions",
+              tags$h1("This is the Memory Measurer!"),
+              tags$h4(
+                  tags$p("The goal of the task is to remember as many words as you can."),
+                  tags$p("Start by choosing your difficulty level and how much time you would like to spend.
+                         Then", tags$strong("memorize!")),
+                  tags$p("In between the memorizing and the reciting, there will be a", tags$em("distractor"), "task --
+                         don't let it stump you!"),
+                  tags$p("Good luck and have fun!")
+                )
+              ),
+     tabPanel("Memorizing Phase",
+              sidebarLayout(position = "left",
+                sidebarPanel(
+                  selectInput(inputId  = "sylChoice",   # User customizes word difficulty
+                              label    = "Word Difficulty",
+                              choices  = c("Easy -- One Syllable" = "easy",
+                                          "Medium -- Two Syllables" = "medium",
+                                          "Hard -- Three Syllables" = "hard"),
+                              selected = "medium"),
+                  numericInput(inputId = "timerIn", # Choose how much time to spend
+                               label   = "Seconds",
+                               value   = 30,
+                               min     = 0,
+                               max     = 120,
+                               step    = 1),
+                  numericInput(inputId = "numWords",    # Choose the number of words
+                               label   = "Number of Words",
+                               value   = 15,
+                               min     = 5,
+                               max     = 100,
+                               step    = 1),
+                  actionButton(inputId = "start",
+                               label   = "Start!")
+                ),
+                mainPanel(
+                  tags$h4(textOutput(outputId  = "timeleft")),   # Print how much time is left
+                  tags$h2("Memorize the following words:"),
+                  column(tableOutput(outputId  = "wordTable"), width = 6) # Show the words
+                )
+              )
+             ),
+     tabPanel("Intermediate Task",
+              sliderInput(inputId  = "circleGuess", # User can guess the number of circles
+                           label   = "Count the circles and indicate on the slider how many there are.",
+                           min     = 0, max = 50, value = 0),
+              plotOutput(outputId  = "circles"),    # Show the circles
+              actionButton(inputId = "circleDone", label = "Done"),
+              verbatimTextOutput(outputId = "circleAccuracy") # Feedback for guess
+              ),
+     tabPanel("Reciting",
+              textInput(inputId = "wordsRemembered",    # User types remembered words
+                        label = "Please type the words that you remember and press the Submit button after
+                                 each one",
+                        value = ""),
+              actionButton(inputId = "submitWord",
+                           label   = "Submit"),
+              tableOutput(outputId = "tableRemembered"), # Typed words appear underneath
+              actionButton(inputId = "finishSubmit",
+                           label   = "I'm Finished"),
+              verbatimTextOutput(outputId = "scoreText") # Feedback about score
+              )
 )
 
 server <- function(input, output, session){
@@ -62,6 +73,7 @@ server <- function(input, output, session){
 # Memorizing Phase -----------------------------------------------------------
 
   ### Loading the word data and tabling them
+  allWords <- NULL
   observeEvent(input$start, {
     allWords <<- load_words(wordLength = input$sylChoice)
   })
@@ -101,7 +113,7 @@ server <- function(input, output, session){
   observeEvent(input$start, {timer(input$timerIn)})
   observeEvent(input$start, {
     output$timeleft <- renderText({
-        paste("Time left: ", seconds_to_period(timer()))
+        paste("Time left: ", lubridate::seconds_to_period(timer()))
     })
   })
 
@@ -167,7 +179,6 @@ server <- function(input, output, session){
                 row.names = c("Difficulty", "Time", "Number of words", "Score"))
   })
 }
-
 runApp(
   shinyApp(ui = ui, server = server)
 )

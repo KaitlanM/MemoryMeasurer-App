@@ -15,10 +15,18 @@
 load_words <- function(wordLength) {
   setwd("~/MemoryMeasurer/R")
   ### Reading in the files to sample words from
+
+  oneSyllable <- NULL
+  twoSyllable <- NULL
+  twoSyllableSmall <- NULL
+  threeSyllable <- NULL
+  threeSyllableSmall <- NULL
+
   if (wordLength == "easy") {
     oneSyllable <- read.table(file = "1syllablenouns.txt")
     oneSyllable <- as.vector(oneSyllable[, 1]) # This needs to be a vector so that we can sample from it later
     return (oneSyllable)}
+
 
   if (wordLength == "medium") {
     twoSyllable <- read.table(file = "2syllablenouns.txt")

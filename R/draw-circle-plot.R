@@ -10,6 +10,7 @@
 #'
 #' @export
 draw_circle_plot <- function(numCirc) {
+  # The empty plot
   plot(
     0:11,
     type = "n",
@@ -19,14 +20,16 @@ draw_circle_plot <- function(numCirc) {
     tck = 0,
     xaxt = "n",
     yaxt = "n"
-  ) # The empty plot
+  )
 
+  # Plot numCirc amount of circles on it
   for (i in 1:numCirc) {
-    # Plot the circles on it
     plotrix::draw.circle(
+      # Plot them at a random place on the x-y axis
       runif(1, min = 1, max = 10),
       runif(1, min = 1, max = 10),
       radius = 0.4,
+      # Give each circle a random color
       col = rgb(
         red = runif(1),
         green = runif(1),

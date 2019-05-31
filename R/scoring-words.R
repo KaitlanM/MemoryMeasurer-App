@@ -14,10 +14,11 @@
 scoring <- function(system, user, wordLength){
   distances <- NULL
   score <- 0
-  user <- sort(user)
+  user <- sort(user) # Sort the words so that we can skip duplicates later (see line 53)
   tUser <- t(user)
   tolerance <- 0
 
+  # Allow for more mistakes with harder words
   if (wordLength == "easy") {
     tolerance <- c(0, 1)
   } else if (wordLength == "medium") {
@@ -26,15 +27,18 @@ scoring <- function(system, user, wordLength){
     tolerance <- c(0, 1, 2, 3)
   }
 
+  # Compute the distance between the user's word and the word which was shown
   for (i in 1:length(tUser)) {
     for (j in 1:length(system)) {
       distances <- c(distances, adist(tUser[[i]], system[j]))
     }
   }
 
+  # Convert to a matrix so that we can later check by row
   mDistances <- matrix(distances, nrow = length(tUser), ncol = length(system), byrow = TRUE)
 
-  k <- 1
+
+  # Index the words which have a distance equal to or smaller than the tolerance
   score_index <- NULL
   for (k in 1:nrow(mDistances)) {
     if (any(tolerance %in% mDistances[k, ])) {
@@ -43,6 +47,8 @@ scoring <- function(system, user, wordLength){
     }
   }
   scored_words <- user[score_index]
+
+  # Create a while loop so that if the user repeats a word, the repeats can be skipped rather than scored twice
   l <- 1
   while (l <= (length(score_index) - 1)) {
     for (m in (l + 1):length(score_index)) {
@@ -50,7 +56,7 @@ scoring <- function(system, user, wordLength){
                         ((adist(scored_words[l], scored_words[m])) == 0 ||
                          (adist(scored_words[l], scored_words[m]) == 1)) &&
                         m != l) {
-        score <- score - 1
+        score <- score - 1 # Preventing double scoring for repeated words
         l <- l + as.numeric(table(scored_words[l])) - 1
       } else if (wordLength == "medium" &&
                  ((adist(scored_words[l], scored_words[m])) == 0 ||
