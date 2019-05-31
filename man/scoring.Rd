@@ -4,7 +4,7 @@
 \alias{scoring}
 \title{Title}
 \usage{
-scoring(system, user)
+scoring(system, user, wordLength)
 }
 \arguments{
 \item{user}{}

@@ -1,13 +1,16 @@
-#' Title
+#' Scoring Words
 #'
-#' @param system
-#' @param user
+#' @description Checks the similarity between system-presented words and user-inputted words using the Levenshtein distance. Checks if words differ by a variable amount of typos. Checks if user words are repeated in order to score accurately.
 #'
-#' @return
+#' @param system A character vector
+#' @param user A single-column dataframe of character strings representing words the user remembered
+#' @param wordLength A character vector of either "easy", "medium", or "hard" which determines the number typos to allow. ("easy" = 1 typo, "medium" = 2 typos, "hard" = 3 typos.)
+#'
+#' @return A single numeric value representing the number of words that were similar.
+#'
+#' @examples scoring(system = c("hello", "world"), user = c("helo", "you", "there"), wordLength = "easy")
+#'
 #' @export
-#'
-#' @examples
-#'
 scoring <- function(system, user, wordLength){
   distances <- NULL
   score <- 0
@@ -39,7 +42,6 @@ scoring <- function(system, user, wordLength){
       score <- score + 1
     }
   }
-  ### THIS IS PROBLEMATIC!!!
   scored_words <- user[score_index]
   l <- 1
   while (l <= (length(score_index) - 1)) {
@@ -72,10 +74,5 @@ scoring <- function(system, user, wordLength){
   return (score)
 }
 
-system <- c("hello", "hi", "there")
-user <- c("hi", "hi", "hi", "thats")
-
-wordLength <- ("easy")
-scoring(system, user, wordLength)
 
 

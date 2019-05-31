@@ -14,39 +14,44 @@ source("~/MemoryMeasurer/R/draw_circle_plot.R")
 
 
 ui <- navbarPage(title = "Memory Measurer",
-                 tabPanel("Instructions",
-                          "This is the Memory Measurer! The goal of the task is to remember as many words as you can. Start by choosing your difficulty level and how much time you would like to spend. Then memorize! In between the memorizing and the reciting, there will be a distractor task -- don't let it stump you! Good luck and have fun :)"
+                 tabPanel("Instructions", # Replace with own insntructions for the task
+                          "This is the Memory Measurer!
+                          The goal of the task is to remember as many words as you can.
+                          Start by choosing your difficulty level and how much time you would like to spend.
+                          Then memorize!
+                          In between the memorizing and the reciting, there will be a distractor task -- don't let it stump you!
+                          Good luck and have fun :)"
                           ),
                  tabPanel("Memorizing Phase",
-                          selectInput(inputId = "sylChoice", label = "Word Difficulty",
+                          selectInput(inputId = "sylChoice", label = "Word Difficulty", # User customizes word difficulty
                                       choices = c("Easy -- One Syllable" = "easy",
                                                   "Medium -- Two Syllables" = "medium",
                                                   "Hard -- Three Syllables" = "hard")),
-                          numericInput(inputId = "timerIn", label = "Seconds", value = 30,
+                          numericInput(inputId = "timerIn", label = "Seconds", value = 30, # Choose how much time to spend
                                        min = 0, max = 120, step = 1),
-                          numericInput(inputId = "numWords", "Number of Words", value = 15,
+                          numericInput(inputId = "numWords", "Number of Words", value = 15, # Choose the number of words
                                        min = 5, max = 100, step = 1),
                           actionButton(inputId = "start", label = "Start!"),
-                          textOutput(outputId = "timeleft"),
+                          textOutput(outputId = "timeleft"), # Print how much time is left
                          "Memorize the following words:",
-                         tableOutput(outputId = "wordTable")
+                         tableOutput(outputId = "wordTable") # Show the words
                          ),
                  tabPanel("Intermediate Task",
-                          sliderInput(inputId = "circleGuess",
+                          sliderInput(inputId = "circleGuess", # Indicate the number of circles
                                        label = "Count the circles and indicate on the slider how many there are.",
                                        min = 0, max = 50, value = 0),
-                          plotOutput(outputId = "circles"),
+                          plotOutput(outputId = "circles"), # Show the circles
                           actionButton(inputId = "circleDone", label = "Done"),
-                          verbatimTextOutput(outputId = "circleAccuracy")
+                          verbatimTextOutput(outputId = "circleAccuracy") # Feedback for guess
                           ),
                  tabPanel("Reciting",
-                          textInput(inputId = "wordsRemembered",
+                          textInput(inputId = "wordsRemembered", # User types remembered words
                                     label = "Please type the words that you remember and press the Submit button after each one",
                                     value = ""),
                           actionButton(inputId = "submitWord", label = "Submit"),
-                          tableOutput(outputId = "tableRemembered"),
+                          tableOutput(outputId = "tableRemembered"), # Typed words appear underneath
                           actionButton(inputId = "finishSubmit", label = "I'm Finished"),
-                          verbatimTextOutput(outputId = "scoreText")
+                          verbatimTextOutput(outputId = "scoreText") # Feedback about score
                           )
 
 )
@@ -142,9 +147,10 @@ server <- function(input, output, session){
   })
 
 
-  ### Evaluate the words for accuracy (https://stackoverflow.com/questions/19466747/make-object-created-inside-one-reactive-object-available-to-another-in-shiny?)
+  ### Evaluate the words for accuracy
   observeEvent(input$finishSubmit, {
-    output$scoreText <- renderText({paste("Your score is", scoring(system = wordData, user = data, wordLength = input$sylChoice))})
+    output$scoreText <- renderText({paste("Your score is", scoring(system = wordData, user = data,
+                                                                   wordLength = input$sylChoice), "words. Good job!")})
     write.csv(c(input$sylChoice,
                 input$timerIn,
                 input$numWords,
