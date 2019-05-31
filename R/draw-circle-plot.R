@@ -23,7 +23,7 @@ draw_circle_plot <- function(numCirc) {
 
   for (i in 1:numCirc) {
     # Plot the circles on it
-    draw.circle(
+    plotrix::draw.circle(
       runif(1, min = 1, max = 10),
       runif(1, min = 1, max = 10),
       radius = 0.4,

@@ -25,14 +25,16 @@ load_words <- function(wordLength) {
     twoSyllable <- as.vector(twoSyllable[, 1])
     # The vector is too long  for some Shiny functionality so we can take a random sample to work with
     twoSyllableSmall <- sample(twoSyllable, 5000)
-    return (twoSyllable)
+    return (twoSyllableSmall)
   }
 
   if (wordLength == "hard") {
     threeSyllable <- read.table(file = "3syllablenouns.txt")
     threeSyllable <- as.vector(threeSyllable[, 1])
     threeSyllableSmall <- sample(threeSyllable, 5000)
-    return (threeSyllable)
+    return (threeSyllableSmall)
   }
 }
+
+
 
